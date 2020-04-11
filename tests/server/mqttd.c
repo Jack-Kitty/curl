@@ -778,7 +778,9 @@ static bool incoming(curl_socket_t listenfd)
       else {
         logmsg("====> Client connect, fd %d. Read config from %s",
                newfd, configfile);
+        set_advisor_read_lock(SERVERLOGS_LOCK);
         (void)mqttit(newfd); /* until done */
+        clear_advisor_read_lock(SERVERLOGS_LOCK);
 
         logmsg("====> Client disconnect");
         sclose(newfd);
