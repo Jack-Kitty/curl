@@ -326,8 +326,7 @@ static int connack(FILE *dump, curl_socket_t fd)
     MQTT_MSG_CONNACK, 0x02,
     0x00, 0x00
   };
-  ssize_t rc = send(fd, (char *)packet,
-                    (SEND_TYPE_ARG3)sizeof(packet), 0);
+  ssize_t rc = swrite(fd, (char *)packet, sizeof(packet));
   if(rc == sizeof(packet)) {
     logmsg("WROTE %d bytes [CONACK]", rc);
     loghex(packet, rc);
@@ -349,7 +348,7 @@ static int suback(FILE *dump, curl_socket_t fd, unsigned short packetid)
   packet[2] = (unsigned char)(packetid >> 8);
   packet[3] = (unsigned char)(packetid & 0xff);
 
-  rc = send(fd, (char *)packet, (SEND_TYPE_ARG3)sizeof(packet), 0);
+  rc = swrite(fd, (char *)packet, sizeof(packet));
   if(rc == sizeof(packet)) {
     logmsg("WROTE %d bytes [SUBACK]", rc);
     loghex(packet, rc);
@@ -371,7 +370,7 @@ static int puback(FILE *dump, curl_socket_t fd, unsigned short packetid)
   packet[2] = (unsigned char)(packetid >> 8);
   packet[3] = (unsigned char)(packetid & 0xff);
 
-  rc = send(fd, (char *)packet, (SEND_TYPE_ARG3)sizeof(packet), 0);
+  rc = swrite(fd, (char *)packet, sizeof(packet));
   if(rc == sizeof(packet)) {
     logmsg("WROTE %d bytes [PUBACK]", rc);
     loghex(packet, rc);
@@ -389,8 +388,7 @@ static int disconnect(FILE *dump, curl_socket_t fd)
   unsigned char packet[]={
     MQTT_MSG_DISCONNECT, 0x00,
   };
-  ssize_t rc = send(fd, (char *)packet,
-                    (SEND_TYPE_ARG3)sizeof(packet), 0);
+  ssize_t rc = swrite(fd, (char *)packet, sizeof(packet));
   if(rc == sizeof(packet)) {
     logmsg("WROTE %d bytes [DISCONNECT]", rc);
     loghex(packet, rc);
@@ -504,7 +502,7 @@ static int publish(FILE *dump,
   payloadindex = 3 + topiclen + encodedlen;
   memcpy(&packet[payloadindex], payload, payloadlen);
 
-  rc = send(fd, (char *)packet, (SEND_TYPE_ARG3)packetlen, 0);
+  rc = swrite(fd, (char *)packet, packetlen);
   if(rc == packetlen) {
     logmsg("WROTE %d bytes [PUBLISH]", rc);
     loghex(packet, rc);
@@ -528,7 +526,7 @@ static int fixedheader(curl_socket_t fd,
   unsigned char buffer[10];
 
   /* get the first two bytes */
-  ssize_t rc = recv(fd, (char *)buffer, 2, 0);
+  ssize_t rc = sread(fd, (char *)buffer, 2);
   int i;
   if(rc < 2) {
     logmsg("READ %d bytes [SHORT!]", rc);
@@ -542,7 +540,7 @@ static int fixedheader(curl_socket_t fd,
   i = 1;
   while(buffer[i] & 0x80) {
     i++;
-    rc = recv(fd, (char *)&buffer[i], 1, 0);
+    rc = sread(fd, (char *)&buffer[i], 1);
     if(rc != 1) {
       logmsg("Remaining Length broken");
       return 1;
@@ -585,7 +583,7 @@ static curl_socket_t mqttit(curl_socket_t fd)
     if(rc)
       break;
     if(remaining_length) {
-      rc = recv(fd, (char *)buffer, remaining_length, 0);
+      rc = sread(fd, (char *)buffer, remaining_length);
       if(rc > 0) {
         logmsg("READ %d bytes", rc);
         loghex(buffer, rc);
@@ -698,7 +696,7 @@ static curl_socket_t mqttit(curl_socket_t fd)
 #endif
       /* expect a disconnect here */
       /* get the request */
-      rc = recv(fd, (char *)&buffer[0], 2, 0);
+      rc = sread(fd, (char *)&buffer[0], 2);
 
       logmsg("READ %d bytes [DISCONNECT]", rc);
       loghex(buffer, rc);
