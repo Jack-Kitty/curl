@@ -63,8 +63,8 @@
 /* to disable LDAPS */
 #cmakedefine CURL_DISABLE_LDAPS 1
 
-/* to disable MQTT */
-#undef CURL_DISABLE_MQTT
+/* to enable MQTT */
+#undef CURL_ENABLE_MQTT
 
 /* to disable POP3 */
 #cmakedefine CURL_DISABLE_POP3 1
